@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: "@project.parent.artifactId@"
+    version: "@project.parent.version@"
+  profiles:
+    active: dev
+  # 开启 Java 21 的虚拟线程
+  threads:
+    virtual:
+      enabled: true
+  # 数据库配置
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${database.host}:${database.port}/${database.name}?userSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${database.username}
+    password: ${database.password}
+    hikari:
+      pool-name: HikariCP
+      minimum-idle: 2
+      idle-timeout: 180000
+      maximum-pool-size: 10
+      auto-commit: true
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      database: ${redis.database}
+      password: ${redis.password}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 1
+          max-wait: -1ms
+        shutdown-timeout: 2000ms

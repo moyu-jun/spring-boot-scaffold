@@ -1,0 +1,55 @@
+server:
+  port: 8080
+
+# 数据库配置
+database:
+  host: 127.0.0.1
+  port: 3306
+  name: dev
+  username: root
+  password: 123456
+
+# Redis 缓存配置
+redis:
+  host: localhost
+  port: 6379
+  database: 0
+  password: 123456
+
+# 可重复读 Request, 以下为默认配置，可删除
+request:
+  repeatable:
+    enabled: true
+    max-payload-size: 10MB
+
+# 接口文档配置
+springdoc:
+  apiDocs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# 监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: always
+
+# 日志级别配置
+logging:
+  level:
+    root: info
+    org.springframework.web: info
+    com.junmoyu: debug
+
+# mybatis plus SQL 日志打印
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+
