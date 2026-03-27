@@ -1,9 +1,9 @@
 spring:
   application:
     name: "@project.parent.artifactId@"
-    version: "@project.parent.version@"
+    version: "@project.version@"
   profiles:
-    active: dev
+    active: dev,example
   # 开启 Java 21 的虚拟线程
   threads:
     virtual:

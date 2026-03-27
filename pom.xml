@@ -18,29 +18,30 @@
     <description>基于 Java 21 和 Spring Boot 3.5 的脚手架项目</description>
 
     <modules>
-        <module>basic</module>
         <module>bootstrap</module>
+        <module>kit-basic</module>
+        <module>kit-oss</module>
+        <module>kit-security</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <!-- maven -->
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+        <!-- Spring & Spring Boot -->
         <spring.version>6.2.16</spring.version>
         <spring-boot.version>3.5.11</spring-boot.version>
         <spring-ai.version>1.1.2</spring-ai.version>
         <springdoc-openapi.version>2.8.16</springdoc-openapi.version>
-
+        <!-- core component -->
         <tomcat-embed.version>10.1.52</tomcat-embed.version>
         <mybatis-plus.version>3.5.15</mybatis-plus.version>
-
+        <aws-sdk-s3.version>2.29.45</aws-sdk-s3.version>
         <!-- tools -->
         <hutool.version>5.8.43</hutool.version>
         <jackson.version>2.19.4</jackson.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <commons-collections4.version>4.5.0</commons-collections4.version>
-
         <slf4j.version>2.0.17</slf4j.version>
         <validation-api.version>3.1.1</validation-api.version>
         <servlet-api.version>6.1.0</servlet-api.version>
@@ -50,8 +51,29 @@
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>basic</artifactId>
+                <artifactId>kit-basic</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>kit-oss</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>kit-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${aws-sdk-s3.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.springframework.ai</groupId>
@@ -148,6 +170,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <annotationProcessorPaths>
                         <path>

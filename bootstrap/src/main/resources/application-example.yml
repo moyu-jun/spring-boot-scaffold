@@ -1,0 +1,23 @@
+# kit-oss 配置
+oss:
+  enabled: true
+  endpoint: http://localhost:9000
+  region: us-east-1
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket-name: test-bucket
+  path-style-access: true
+
+# kit-security 配置
+security:
+  enabled: true
+  exclude-patterns:
+    - /api/auth/login
+    - /api/auth/register
+    - /api/async-test/**
+    - /api/file/**
+  token:
+    header-name: Authorization
+    prefix: "Bearer "
+    expiration: 604800        # 7 天（秒）
+    refresh-expiration: 2592000  # 30 天（秒）

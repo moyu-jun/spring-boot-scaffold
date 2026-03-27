@@ -13,10 +13,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    @Value("$spring.application.name:default")
+    @Value("${spring.application.name:default}")
     private String appName;
 
-    @Value("$spring.application.version:1.0.0")
+    @Value("${spring.application.version:1.0.0}")
     private String appVersion;
 
     @Bean

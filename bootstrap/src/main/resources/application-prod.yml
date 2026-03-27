@@ -28,28 +28,22 @@ redis:
   database: 0
   password: 123456
 
-# 可重复读 Request, 以下为默认配置，可删除
-request:
-  repeatable:
-    enabled: true
-    max-payload-size: 10MB
-
-# 接口文档配置
+# 接口文档配置 - 生产环境关闭
 springdoc:
   apiDocs:
-    enabled: true
+    enabled: false
   swagger-ui:
-    enabled: true
+    enabled: false
 
-# 监控端点
+# 监控端点 - 生产环境仅开放必要端点
 management:
   endpoints:
     web:
       exposure:
-        include: "health,info,metrics,prometheus"
+        include: "health,metrics,prometheus"
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
 
 # 日志配置
 logging:
@@ -58,16 +52,11 @@ logging:
     path: /var/log/${spring.application.name}
   # 日志级别配置 - 生产环境使用更高级别
   level:
-    root: INFO
+    root: WARN
     # Spring 框架
     org.springframework: WARN
     org.springframework.web: WARN
     org.springframework.boot: WARN
     org.springframework.boot.autoconfigure: ERROR
     # 项目包 - 生产环境使用 INFO 级别
-    com.junmoyu: DEBUG
-
-# mybatis plus SQL 日志打印
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    com.junmoyu: INFO
