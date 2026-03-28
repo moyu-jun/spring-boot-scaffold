@@ -31,6 +31,70 @@ spring-boot-scaffold
 
 ---
 
+## 🚀 编译安装与应用
+
+1. 先将脚手架安装到本地（只需要执行一次，除非版本更新）。
+
+```shell
+# 执行生成命令
+mvn archetype:create-from-project
+
+# 安装到本地仓库
+cd target/generated-sources/archetype
+mvn clean install
+```
+
+2. 创建 catalog.xml 文件
+
+创建 catalog.xml 文件，并在文件中写入如下内容：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-catalog 
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-catalog/1.0.0 http://maven.apache.org/xsd/archetype-catalog-1.0.0.xsd"
+  xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-catalog/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <archetypes>
+    <!-- 本地 Spring Boot 脚手架信息 -->
+    <archetype>
+      <groupId>com.junmoyu</groupId>
+      <!-- 脚手架 ArtifactId （默认项目名-archetype）-->
+      <artifactId>spring-boot-scaffold-archetype</artifactId>
+      <!-- 注意和当前项目版本保持一致 -->
+      <version>0.0.1-SNAPSHOT</version>
+    </archetype>
+
+    <!-- 可添加多个本地脚手架，按同样格式写即可 -->
+  </archetypes>
+</archetype-catalog>
+```
+
+完成后将文件放置到 `C:\Users\xxxx\.m2` 文件夹或任意文件夹都可，但建议放置在该目录。
+
+3. IDEA 中添加 catalog
+
+* 启动 IDEA，选择 Settings -> Build, Execution, Deployment -> Build Tools -> Maven -> Archetype Catalogs。
+* 在右侧面板的上方，点击 `+` 按钮会弹出 `Add Catalog` 弹窗。
+* 在 Add Catalog 弹窗中输入相应信息：
+  * **Location**: 选择之前编写的 `catalog.xml` 文件。
+  * **Name**: 根据你的喜好进行命令即可，比如 `Local Catalog`。
+* 点击 `Add` 即可添加成功。
+
+![Add Catalog](https://cdn.jsdelivr.net/gh/moyu-jun/resource/img/Add-Catalog.png)
+
+4. 新建项目使用脚手架
+
+* 启动 IDEA，选择 File -> New -> Project，出现 New Project 弹窗。
+* 在左侧面板选择 `Maven Archetype`。
+* 在右侧面板的 `Catalog` 的下拉框中选择上一步添加的 `Local Catalog`。
+* 然后在下方的 `Archetype` 的下拉框中就可以选择脚手架。
+* 选择完脚手架，补充完其他信息，点击 `Create` 按钮即可按照该脚手架创建项目。
+
+![Use Catalog](https://cdn.jsdelivr.net/gh/moyu-jun/resource/img/Use-Catalog.png)
+
+---
+
 ## 📖 核心组件说明
 
 ### 1. kit-basic - 基础模块
@@ -215,32 +279,6 @@ public class UserController {
     }
 }
 ```
-
----
-
-## 🚀 编译安装与应用
-
-1. 执行生成命令
-
-```shell
-mvn archetype:create-from-project
-```
-2. 安装到本地仓库
-
-```shell
-cd target/generated-sources/archetype
-mvn clean install
-```
-3. IDEA 中使用该脚手架
-
-* 启动 IDEA，选择 File -> New -> Project（如果是欢迎界面，直接点 New Project）。
-* 在左侧生成器列表中，选择 Maven Archetype。
-* 在右侧配置区域，你会看到 Archetype 下拉框，点击其右侧的 Add... 按钮。
-* 在弹出的对话框中输入你的自定义 Archetype 信息：
-  * GroupId: com.junmoyu
-  * ArtifactId: spring-boot-scaffold-archetype
-  * Version: 0.0.1-SNAPSHOT
-* 点击 OK 即可根据脚手架生成新项目。
 
 ---
 
