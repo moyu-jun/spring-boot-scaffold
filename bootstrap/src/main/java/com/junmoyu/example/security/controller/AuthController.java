@@ -1,5 +1,6 @@
 package com.junmoyu.example.security.controller;
 
+import com.junmoyu.basic.constant.BasicConst;
 import com.junmoyu.basic.model.R;
 import com.junmoyu.example.security.model.LoginRequest;
 import com.junmoyu.example.security.model.LoginResponse;
@@ -35,8 +36,8 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
-    public R<Void> logout(@RequestHeader("Authorization") String authorization) {
-        String token = authorization.replace("Bearer ", "");
+    public R<Void> logout(@RequestHeader(BasicConst.HEADER_AUTHORIZATION) String authorization) {
+        String token = authorization.replace(BasicConst.TOKEN_PREFIX, "");
         authService.logout(token);
         return R.success();
     }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.junmoyu.iam.mapper.UserMapper">
+  <resultMap id="BaseResultMap" type="com.junmoyu.iam.model.entity.UserEntity">
+    <!--@Table sys_user-->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="org_id" jdbcType="BIGINT" property="orgId" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="real_name" jdbcType="VARCHAR" property="realName" />
+    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="disable" jdbcType="TINYINT" property="disable" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, org_id, username, real_name, avatar, phone, email, disable, create_time, update_time
+  </sql>
+
+  <select id="getAllRoleByUserId" resultType="java.lang.String">
+    -- 方式一：获取用户直接关联的角色
+    SELECT r.role_code
+    FROM sys_role r
+           INNER JOIN sys_user_role ur ON r.id = ur.role_id
+    WHERE ur.user_id = #{userId,jdbcType=BIGINT} AND r.disable = 0
+
+    UNION
+
+    -- 方式二：获取用户所在用户组绑定的角色
+    SELECT r.role_code
+    FROM sys_role r
+           INNER JOIN sys_user_group_role ugr ON r.id = ugr.role_id
+           INNER JOIN sys_user_group_user ugu ON ugr.group_id = ugu.group_id
+           INNER JOIN sys_user_group ug ON ug.id = ugu.group_id
+    WHERE ugu.user_id = #{userId,jdbcType=BIGINT} AND r.disable = 0 AND ug.disable = 0;
+  </select>
+
+  <select id="getAllPermissionByUserId" resultType="java.lang.String">
+    SELECT DISTINCT p.perm_code
+    FROM sys_permission p
+           INNER JOIN sys_role_permission rp ON p.id = rp.permission_id
+    WHERE p.disable = 0
+      AND p.perm_code IS NOT NULL
+      AND rp.role_id IN (
+      -- 子查询：获取用户的全量角色ID集合
+      SELECT role_id FROM sys_user_role WHERE user_id = #{userId,jdbcType=BIGINT}
+      UNION
+      SELECT ugr.role_id
+      FROM sys_user_group_role ugr
+             INNER JOIN sys_user_group_user ugu ON ugr.group_id = ugu.group_id
+             INNER JOIN sys_user_group ug ON ug.id = ugu.group_id
+      WHERE ugu.user_id = #{userId,jdbcType=BIGINT} AND ug.disable = 0
+    );
+  </select>
+</mapper>

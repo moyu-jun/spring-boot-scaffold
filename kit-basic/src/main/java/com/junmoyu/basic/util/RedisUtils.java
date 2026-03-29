@@ -1,11 +1,9 @@
 package com.junmoyu.basic.util;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.HashOperations;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -17,351 +15,419 @@ public class RedisUtils {
 
     private final StringRedisTemplate redisTemplate;
 
-    /**
-     * 构造器
-     *
-     * @param redisTemplate StringRedisTemplate
-     */
     public RedisUtils(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     /**
-     * key 操作 - 获得键名列表
-     *
-     * @param prefix 键名前缀
-     * @return 键名列表
+     * 通用 Key 操作 - 判断 key 是否存在
      */
-    public Set<String> keys(final String prefix) {
-        return redisTemplate.keys(prefix);
+    public Boolean hasKey(String key) {
+        return redisTemplate.hasKey(key);
     }
 
     /**
-     * key 操作 -检查键是否存在
-     *
-     * @param key 键名
-     * @return 如果键存在则返回 true，否则返回 false
+     * 通用 Key 操作 - 删除单个 key
      */
-    public boolean hasKey(final String key) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    public Boolean delete(String key) {
+        return redisTemplate.delete(key);
     }
 
     /**
-     * String 操作 - 缓存基本数据
-     *
-     * @param key   键名
-     * @param value 缓存值
-     * @param <T>   自定义类型
+     * 通用 Key 操作 - 批量删除 key
      */
-    public <T> void set(final String key, final T value) {
-        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value));
+    public Long delete(Collection<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return 0L;
+        }
+        return redisTemplate.delete(keys);
     }
 
     /**
-     * String 操作 - 缓存基本数据
-     *
-     * @param key     键名
-     * @param value   缓存值
-     * @param timeout 过期时间
-     * @param <T>     自定义类型
+     * 通用 Key 操作 - 设置过期时间（单位默认为秒）
      */
-    public <T> void set(final String key, final T value, final long timeout) {
-        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value), timeout, TimeUnit.SECONDS);
+    public Boolean expire(String key, long timeout) {
+        return redisTemplate.expire(key, timeout, TimeUnit.SECONDS);
     }
 
     /**
-     * String 操作 - 缓存基本数据
-     *
-     * @param key      键名
-     * @param value    缓存值
-     * @param timeout  过期时间
-     * @param timeUnit 时间单位
-     * @param <T>      自定义类型
+     * 通用 Key 操作 - 设置过期时间
      */
-    public <T> void set(final String key, final T value, final long timeout, final TimeUnit timeUnit) {
-        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value), timeout, timeUnit);
+    public Boolean expire(String key, long timeout, TimeUnit unit) {
+        return redisTemplate.expire(key, timeout, unit);
     }
 
     /**
-     * String 操作 - 设置有效时间（默认单位为秒）
-     *
-     * @param key     键名
-     * @param timeout 过期时间
-     * @return 如果设置成功则返回 true，否则返回 false
+     * 通用 Key 操作 - 设置过期时间（Duration 方式）
      */
-    public boolean expire(final String key, final long timeout) {
-        return expire(key, timeout, TimeUnit.SECONDS);
+    public Boolean expire(String key, Duration duration) {
+        if (duration == null) {
+            return false;
+        }
+        return redisTemplate.expire(key, duration);
     }
 
     /**
-     * String 操作 - 设置有效时间（自定义时间单位）
-     *
-     * @param key     键名
-     * @param timeout 过期时间
-     * @param unit    时间单位
-     * @return 如果设置成功则返回 true，否则返回 false
+     * 通用 Key 操作 - 移除过期时间（持久化 key）
      */
-    public boolean expire(final String key, final long timeout, final TimeUnit unit) {
-        return Boolean.TRUE.equals(redisTemplate.expire(key, timeout, unit));
+    public Boolean persist(String key) {
+        return redisTemplate.persist(key);
     }
 
     /**
-     * String 操作 - 获取剩余有效时间（默认单位为秒）
-     *
-     * @param key 键名
-     * @return 剩余有效时间
+     * 通用 Key 操作 - 获取 key 剩余过期时间
      */
-    public Long getExpire(final String key) {
-        return getExpire(key, TimeUnit.SECONDS);
-    }
-
-    /**
-     * String 操作 - 获取剩余有效时间（自定义时间单位）
-     *
-     * @param key  键名
-     * @param unit 时间单位
-     * @return 剩余有效时间
-     */
-    public Long getExpire(final String key, final TimeUnit unit) {
+    public Long getExpire(String key, TimeUnit unit) {
         return redisTemplate.getExpire(key, unit);
     }
 
     /**
-     * String 操作 - 获得缓存数据
-     *
-     * @param key 键名
-     * @param clz 自定义类型
-     * @param <T> 自定义类型
-     * @return 键值
+     * String 类型操作 - 设置 key（无过期时间）
      */
-    public <T> T get(final String key, Class<T> clz) {
+    public void set(String key, Object value) {
+        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value));
+    }
+
+    /**
+     * String 类型操作 - 设置 key，并指定过期时间（单位默认为秒）
+     */
+    public void set(String key, Object value, long timeout) {
+        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value), timeout, TimeUnit.SECONDS);
+    }
+
+    /**
+     * String 类型操作 - 设置 key，并指定过期时间
+     */
+    public void set(String key, Object value, long timeout, TimeUnit unit) {
+        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value), timeout, unit);
+    }
+
+    /**
+     * String 类型操作 - 设置 key，并指定过期时间（Duration）
+     */
+    public void set(String key, Object value, Duration duration) {
+        redisTemplate.opsForValue().set(key, JsonUtils.toJson(value), duration);
+    }
+
+    /**
+     * String 类型操作 - 当 key 不存在时设置（SETNX）
+     */
+    public Boolean setIfAbsent(String key, Object value) {
+        return redisTemplate.opsForValue().setIfAbsent(key, JsonUtils.toJson(value));
+    }
+
+    /**
+     * String 类型操作 - 当 key 不存在时设置，并带过期时间（单位默认为秒）
+     */
+    public Boolean setIfAbsent(String key, Object value, long timeout) {
+        return redisTemplate.opsForValue().setIfAbsent(key, JsonUtils.toJson(value), timeout, TimeUnit.SECONDS);
+    }
+
+    /**
+     * String 类型操作 - 当 key 不存在时设置，并带过期时间
+     */
+    public Boolean setIfAbsent(String key, Object value, long timeout, TimeUnit unit) {
+        return redisTemplate.opsForValue().setIfAbsent(key, JsonUtils.toJson(value), timeout, unit);
+    }
+
+    /**
+     * String 类型操作 - 当 key 不存在时设置，并带过期时间（Duration）
+     */
+    public Boolean setIfAbsent(String key, Object value, Duration duration) {
+        return redisTemplate.opsForValue().setIfAbsent(key, JsonUtils.toJson(value), duration);
+    }
+
+    /**
+     * String 类型操作 - 获取值并反序列化为指定类型
+     */
+    public <T> T get(String key, Class<T> clz) {
         String value = redisTemplate.opsForValue().get(key);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
         return JsonUtils.toObject(value, clz);
     }
 
     /**
-     * String 操作 - 获得缓存数据
-     *
-     * @param key 键名
-     * @param clz 自定义类型
-     * @param <T> 自定义类型
-     * @return 键值
+     * String 类型操作 - 获取值并反序列化（支持泛型）
+     * e.g. new TypeReference<Map<String, User>>()
      */
-    public <T> List<T> getArray(final String key, Class<T> clz) {
+    public <T> T get(String key, TypeReference<T> typeReference) {
         String value = redisTemplate.opsForValue().get(key);
-        if (StringUtils.isBlank(value)) {
-            return Collections.emptyList();
-        }
-        return JsonUtils.toArray(value, clz);
+        return JsonUtils.toObject(value, typeReference);
     }
 
     /**
-     * String 操作 - 删除单个数据
-     *
-     * @param key 键名
+     * String 类型操作 - 获取原始 JSON 字符串
      */
-    public void delete(final String key) {
-        redisTemplate.delete(key);
+    public String getRaw(String key) {
+        return redisTemplate.opsForValue().get(key);
     }
 
     /**
-     * String 操作 - 删除多个数据
-     *
-     * @param keys 键名列表
-     * @return 成功删除的数量
+     * String 类型操作 - 获取旧值并设置新值
      */
-    public long delete(final Collection<String> keys) {
-        Long count = redisTemplate.delete(keys);
-        return count == null ? 0 : count;
+    public <T> T getAndSet(String key, Object value, Class<T> clz) {
+        String oldValue = redisTemplate.opsForValue().getAndSet(key, JsonUtils.toJson(value));
+        return JsonUtils.toObject(oldValue, clz);
     }
 
     /**
-     * String 操作 - 递增指定键的值，并返回递增后的结果。
-     *
-     * @param key 键名
-     * @return 递增后的结果，如果键不存在，则创建并将值设置为1，并返回1
+     * String 类型操作 - 获取旧值（原始字符串）并设置新值
      */
-    public Long increment(final String key) {
+    public String getAndSetRaw(String key, Object value) {
+        return redisTemplate.opsForValue().getAndSet(key, JsonUtils.toJson(value));
+    }
+
+    /**
+     * String 类型操作 - 自增（适用于数值类型字符串）
+     */
+    public Long increment(String key) {
         return redisTemplate.opsForValue().increment(key);
     }
 
     /**
-     * String 操作 - 递增指定键的值，并返回递增后的结果。
-     *
-     * @param key   键名
-     * @param delta 递增值
-     * @return 递增后的结果，如果键不存在，则创建并将值设置为delta，并返回delta
+     * String 类型操作 - 按指定步长自增
      */
-    public Long increment(final String key, final long delta) {
+    public Long increment(String key, long delta) {
         return redisTemplate.opsForValue().increment(key, delta);
     }
 
     /**
-     * String 操作 - 递减指定键的值，并返回递减后的结果。
-     *
-     * @param key 键名
-     * @return 递减后的结果，如果键不存在，则创建并将值设置为-1，并返回-1
+     * String 类型操作 - 浮点数自增
+     * <p>
+     * increment("k", 1.5); - 自增
+     * increment("k", -1.5); - 自减
      */
-    public Long decrement(final String key) {
+    public Double increment(String key, double delta) {
+        return redisTemplate.opsForValue().increment(key, delta);
+    }
+
+    /**
+     * String 类型操作 - 自减
+     */
+    public Long decrement(String key) {
         return redisTemplate.opsForValue().decrement(key);
     }
 
     /**
-     * String 操作 - 递减指定键的值，并返回递减后的结果。
-     *
-     * @param key   键名
-     * @param delta 递减值
-     * @return 递减后的结果，如果键不存在，则创建并将值设置为-delta，并返回-delta
+     * String 类型操作 - 按指定步长自减
      */
-    public Long decrement(final String key, final long delta) {
+    public Long decrement(String key, long delta) {
         return redisTemplate.opsForValue().decrement(key, delta);
     }
 
     /**
-     * List 操作 - 缓存 List 数据
-     *
-     * @param key    键名
-     * @param values 缓存值列表
-     * @param <T>    自定义类型
-     * @return 操作成功的数量
+     * Hash 类型操作 - 设置 hash 字段
      */
-    public <T> long setList(final String key, final List<T> values) {
-        if (CollectionUtils.isEmpty(values)) {
-            return 0L;
-        }
-        List<String> valueList = values.stream().map(JsonUtils::toJson).collect(Collectors.toList());
-        Long count = redisTemplate.opsForList().rightPushAll(key, valueList);
-        return count == null ? 0 : count;
+    public void hSet(String key, String field, Object value) {
+        redisTemplate.opsForHash().put(key, field, JsonUtils.toJson(value));
     }
 
     /**
-     * List 操作 - 获得缓存的 List 对象
-     *
-     * @param key 键名
-     * @param clz 自定义类型
-     * @param <T> 自定义类型
-     * @return 缓存值列表
+     * Hash 类型操作 - 当字段不存在时设置
      */
-    public <T> List<T> getList(final String key, Class<T> clz) {
-        List<String> values = redisTemplate.opsForList().range(key, 0, -1);
-        if (CollectionUtils.isEmpty(values)) {
-            return Collections.emptyList();
-        }
-        return JsonUtils.toArray(values, clz);
+    public Boolean hSetIfAbsent(String key, String field, Object value) {
+        return redisTemplate.opsForHash().putIfAbsent(key, field, JsonUtils.toJson(value));
     }
 
     /**
-     * Set 操作 - 缓存 Set 数据
-     *
-     * @param key    键名
-     * @param values 缓存值 Set 集合
-     * @param <T>    自定义类型
-     * @return 缓存值集合
+     * Hash 类型操作 - 批量设置 hash
      */
-    public <T> Long setSet(final String key, final Set<T> values) {
-        if (CollectionUtils.isEmpty(values)) {
-            return 0L;
-        }
-        String[] valueList = new String[values.size()];
-        int index = 0;
-        for (T value : values) {
-            valueList[index++] = JsonUtils.toJson(value);
-        }
-        return redisTemplate.opsForSet().add(key, valueList);
-    }
-
-    /**
-     * Set 操作 - 获得缓存的 Set 数据
-     *
-     * @param key 键名
-     * @param clz 自定义类型
-     * @param <T> 自定义类型
-     * @return 缓存值
-     */
-    public <T> Set<T> getSet(final String key, Class<T> clz) {
-        Set<String> values = redisTemplate.opsForSet().members(key);
-        if (CollectionUtils.isEmpty(values)) {
-            return Collections.emptySet();
-        }
-        return JsonUtils.toArray(values, clz);
-    }
-
-    /**
-     * Hash Map 操作 - 缓存 Map 数据
-     *
-     * @param key    键名
-     * @param subKey 子键名
-     * @param value  缓存值
-     * @param <T>    自定义类型
-     */
-    public <T> void setMap(final String key, final String subKey, T value) {
-        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
-        opsForHash.put(key, subKey, JsonUtils.toJson(value));
-    }
-
-    /**
-     * Hash Map 操作 - 缓存 Map 数据
-     *
-     * @param key      键名
-     * @param valueMap 缓存值
-     * @param <T>      自定义类型
-     */
-    public <T> void setMap(final String key, final Map<String, T> valueMap) {
-        if (MapUtils.isEmpty(valueMap)) {
+    public void hPutAll(String key, Map<String, ?> map) {
+        if (map == null || map.isEmpty()) {
             return;
         }
-        Map<String, String> map = new HashMap<>(valueMap.size());
-        for (String k : valueMap.keySet()) {
-            map.put(k, JsonUtils.toJson(valueMap.get(k)));
-        }
-        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
-        opsForHash.putAll(key, map);
+        Map<String, String> jsonMap = new LinkedHashMap<>();
+        map.forEach((k, v) -> jsonMap.put(k, JsonUtils.toJson(v)));
+        redisTemplate.opsForHash().putAll(key, jsonMap);
     }
 
     /**
-     * Hash Map 操作 - 获得缓存的 Map 数据
-     *
-     * @param key    键名
-     * @param subKey 子键名
-     * @param clz    自定义类型
-     * @param <T>    自定义类型
-     * @return 缓存值
+     * Hash 类型操作 - 获取 hash 字段值
      */
-    public <T> T getMap(final String key, final String subKey, Class<T> clz) {
-        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
-        String value = opsForHash.get(key, subKey);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        return JsonUtils.toObject(value, clz);
+    public <T> T hGet(String key, String field, Class<T> clz) {
+        Object value = redisTemplate.opsForHash().get(key, field);
+        return JsonUtils.toObject(value == null ? null : value.toString(), clz);
     }
 
     /**
-     * Hash Map 操作 - 获得缓存的 Map 数据
-     *
-     * @param key 键名
-     * @param clz 自定义类型
-     * @param <T> 自定义类型
-     * @return 缓存值集合
+     * Hash 类型操作 - 删除 hash 字段
      */
-    public <T> Map<String, T> getMap(final String key, Class<T> clz) {
-        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
-        Map<String, String> entries = opsForHash.entries(key);
-        if (MapUtils.isEmpty(entries)) {
-            return null;
+    public Long hDelete(String key, String... fields) {
+        return redisTemplate.opsForHash().delete(key, (Object[]) fields);
+    }
+
+    /**
+     * Hash 类型操作 - 判断 hash 字段是否存在
+     */
+    public Boolean hHasKey(String key, String field) {
+        return redisTemplate.opsForHash().hasKey(key, field);
+    }
+
+    /**
+     * Hash 类型操作 - 获取所有字段
+     */
+    public Set<String> hKeys(String key) {
+        Set<Object> keys = redisTemplate.opsForHash().keys(key);
+        if (keys.isEmpty()) {
+            return Collections.emptySet();
         }
-        Map<String, T> valueMap = new HashMap<>(entries.size());
-        for (String k : entries.keySet()) {
-            String value = entries.get(k);
-            if (StringUtils.isBlank(value)) {
-                valueMap.put(k, null);
-            } else {
-                valueMap.put(k, JsonUtils.toObject(value, clz));
-            }
+        return keys.stream().map(String::valueOf).collect(Collectors.toSet());
+    }
+
+    /**
+     * Hash 类型操作 - 获取 hash 长度
+     */
+    public Long hSize(String key) {
+        return redisTemplate.opsForHash().size(key);
+    }
+
+    /**
+     * List 类型操作 - 左插入
+     */
+    public Long lPush(String key, Object value) {
+        return redisTemplate.opsForList().leftPush(key, JsonUtils.toJson(value));
+    }
+
+    /**
+     * List 类型操作 - 右插入
+     */
+    public Long rPush(String key, Object value) {
+        return redisTemplate.opsForList().rightPush(key, JsonUtils.toJson(value));
+    }
+
+    /**
+     * List 类型操作 - 左弹出
+     */
+    public <T> T lPop(String key, Class<T> clz) {
+        return JsonUtils.toObject(redisTemplate.opsForList().leftPop(key), clz);
+    }
+
+    /**
+     * List 类型操作 - 右弹出
+     */
+    public <T> T rPop(String key, Class<T> clz) {
+        return JsonUtils.toObject(redisTemplate.opsForList().rightPop(key), clz);
+    }
+
+    /**
+     * List 类型操作 - 获取范围数据
+     */
+    public <T> List<T> lRange(String key, long start, long end, Class<T> clz) {
+        List<String> list = redisTemplate.opsForList().range(key, start, end);
+        if (list == null) {
+            return Collections.emptyList();
         }
-        return valueMap;
+        return list.stream().map(v -> JsonUtils.toObject(v, clz)).toList();
+    }
+
+    /**
+     * List 类型操作 - 获取列表长度
+     */
+    public Long lSize(String key) {
+        return redisTemplate.opsForList().size(key);
+    }
+
+    /**
+     * Set 类型操作 - 添加元素
+     * <p>
+     * e.g. Object[] arr = {"a", 1, true};
+     * list.toArray();
+     */
+    public Long sAdd(String key, Object... values) {
+        if (values == null || values.length == 0) {
+            return 0L;
+        }
+        String[] json = Arrays.stream(values).map(JsonUtils::toJson).toArray(String[]::new);
+        return redisTemplate.opsForSet().add(key, json);
+    }
+
+    /**
+     * Set 类型操作 - 获取所有成员
+     */
+    public <T> Set<T> sMembers(String key, Class<T> clz) {
+        Set<String> set = redisTemplate.opsForSet().members(key);
+        if (set == null) {
+            return Collections.emptySet();
+        }
+        return set.stream().map(v -> JsonUtils.toObject(v, clz)).collect(Collectors.toSet());
+    }
+
+    /**
+     * Set 类型操作 - 判断是否存在
+     */
+    public Boolean sIsMember(String key, Object value) {
+        return redisTemplate.opsForSet().isMember(key, JsonUtils.toJson(value));
+    }
+
+    /**
+     * Set 类型操作 - 删除元素
+     */
+    public Long sRemove(String key, Object... values) {
+        if (values == null || values.length == 0) {
+            return 0L;
+        }
+        String[] json = Arrays.stream(values).map(JsonUtils::toJson).toArray(String[]::new);
+        return redisTemplate.opsForSet().remove(key, (Object[]) json);
+    }
+
+    /**
+     * Set 类型操作 - 获取集合大小
+     */
+    public Long sSize(String key) {
+        return redisTemplate.opsForSet().size(key);
+    }
+
+    /**
+     * ZSet 类型操作 - 添加元素
+     * <p>
+     * value 不建议使用对象，推荐使用 String
+     */
+    public Boolean zAdd(String key, String value, double score) {
+        return redisTemplate.opsForZSet().add(key, value, score);
+    }
+
+    /**
+     * ZSet 类型操作 - 删除元素
+     */
+    public Long zRemove(String key, String... values) {
+        return redisTemplate.opsForZSet().remove(key, (Object[]) values);
+    }
+
+    /**
+     * ZSet 类型操作 - 获取分数
+     */
+    public Double zScore(String key, String value) {
+        return redisTemplate.opsForZSet().score(key, value);
+    }
+
+    /**
+     * ZSet 类型操作 - 获取排名（升序）
+     */
+    public Long zRank(String key, String value) {
+        return redisTemplate.opsForZSet().rank(key, value);
+    }
+
+    /**
+     * ZSet 类型操作 - 获取排名（降序）
+     */
+    public Long zReverseRank(String key, String value) {
+        return redisTemplate.opsForZSet().reverseRank(key, value);
+    }
+
+    /**
+     * ZSet 类型操作 - 获取元素数量
+     */
+    public Long zSize(String key) {
+        return redisTemplate.opsForZSet().size(key);
+    }
+
+    /**
+     * ZSet 类型操作 - 分数区间查询
+     */
+    public List<String> zRangeByScore(String key, double min, double max) {
+        Set<String> set = redisTemplate.opsForZSet().rangeByScore(key, min, max);
+        if (set == null) {
+            return Collections.emptyList();
+        }
+        return set.stream().toList();
     }
 }

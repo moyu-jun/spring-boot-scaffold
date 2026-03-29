@@ -1,6 +1,7 @@
 package com.junmoyu.security.aspect;
 
-import com.junmoyu.basic.exception.AccessDeniedException;
+import com.junmoyu.basic.exception.AuthException;
+import com.junmoyu.basic.model.AuthErrorCode;
 import com.junmoyu.security.SecurityProperties;
 import com.junmoyu.security.annotation.PreAuthorize;
 import com.junmoyu.security.core.AuthorizeService;
@@ -76,7 +77,7 @@ public class AuthorizeAspect {
      */
     private void checkAuthorize(String expressionStr) {
         if (StringUtils.isBlank(expressionStr)) {
-            throw new AccessDeniedException("权限表达式不能为空");
+            throw new AuthException(AuthErrorCode.PERMISSION_DENIED);
         }
 
         // 从缓存获取或解析表达式
@@ -92,7 +93,7 @@ public class AuthorizeAspect {
         Boolean result = expression.getValue(context, Boolean.class);
 
         if (!Boolean.TRUE.equals(result)) {
-            throw new AccessDeniedException();
+            throw new AuthException(AuthErrorCode.PERMISSION_DENIED);
         }
     }
 }

@@ -176,10 +176,8 @@ security:
     - /api/auth/login
     - /api/auth/register
   token:
-    header-name: Authorization
-    prefix: "Bearer "
-    expiration: 604800  # 7 天
-    refresh-expiration: 2592000  # 30 天（秒）
+    expiration: 1800    # 30 分钟（秒）
+    refresh-expiration: 604800  # 7 天（秒）
 ```
 
 详细文档：[kit-security/README.md](kit-security/README.md)
@@ -238,10 +236,8 @@ security:
   exclude-patterns:
     - /api/auth/**
   token:
-    header-name: Authorization
-    prefix: "Bearer "
-    expiration: 604800
-    refresh-expiration: 2592000
+    expiration: 1800    # 30 分钟（秒）
+    refresh-expiration: 604800  # 7 天（秒）
 ```
 
 ### 3. 使用示例

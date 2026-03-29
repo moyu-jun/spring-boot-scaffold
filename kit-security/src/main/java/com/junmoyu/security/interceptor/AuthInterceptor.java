@@ -1,7 +1,8 @@
 package com.junmoyu.security.interceptor;
 
-import com.junmoyu.basic.exception.AccessDeniedException;
-import com.junmoyu.security.SecurityProperties;
+import com.junmoyu.basic.constant.BasicConst;
+import com.junmoyu.basic.exception.AuthException;
+import com.junmoyu.basic.model.AuthErrorCode;
 import com.junmoyu.security.core.Authentication;
 import com.junmoyu.security.core.SecurityContext;
 import com.junmoyu.security.core.UserDetail;
@@ -23,29 +24,27 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final UserDetail userDetail;
-    private final SecurityProperties securityProperties;
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request,
                              @NonNull HttpServletResponse response,
                              @NonNull Object handler) {
-        SecurityProperties.TokenConfig tokenConfig = securityProperties.getToken();
-        String authHeader = request.getHeader(tokenConfig.getHeaderName());
+        String authHeader = request.getHeader(BasicConst.HEADER_AUTHORIZATION);
 
         // 检查 Authorization 头是否存在且格式正确
-        if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(tokenConfig.getPrefix())) {
+        if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(BasicConst.TOKEN_PREFIX)) {
             log.warn("请求缺少有效的 Authorization 头: {}", request.getRequestURI());
-            throw new AccessDeniedException("缺少认证信息");
+            throw new AuthException(AuthErrorCode.AUTH_FAILED);
         }
 
         // 提取 Token
-        String token = authHeader.substring(tokenConfig.getPrefix().length());
+        String token = authHeader.substring(BasicConst.TOKEN_PREFIX.length());
 
         // 执行认证
         Authentication authentication = userDetail.authentication(token);
         if (authentication == null || !authentication.isAuthenticated()) {
             log.warn("Token 认证失败: {}", request.getRequestURI());
-            throw new AccessDeniedException("认证失败");
+            throw new AuthException(AuthErrorCode.AUTH_FAILED);
         }
 
         // 将认证信息存入上下文
