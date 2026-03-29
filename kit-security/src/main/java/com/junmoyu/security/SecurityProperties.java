@@ -35,27 +35,19 @@ public class SecurityProperties {
      */
     private TokenConfig token = new TokenConfig();
 
+
     @Getter
     @Setter
     public static class TokenConfig {
-        /**
-         * Token 请求头名称
-         */
-        private String headerName = "Authorization";
 
         /**
-         * Token 前缀
+         * Access Token 过期时间（秒），默认 30 分钟
          */
-        private String prefix = "Bearer ";
+        private long expiration = 30 * 60;
 
         /**
-         * Token 过期时间（秒），默认 7 天
+         * Refresh Token 过期时间（秒），默认 7 天
          */
-        private long expiration = 7 * 24 * 60 * 60;
-
-        /**
-         * Refresh Token 过期时间（秒），默认 30 天
-         */
-        private long refreshExpiration = 30 * 24 * 60 * 60;
+        private long refreshExpiration = 7 * 24 * 60 * 60;
     }
 }

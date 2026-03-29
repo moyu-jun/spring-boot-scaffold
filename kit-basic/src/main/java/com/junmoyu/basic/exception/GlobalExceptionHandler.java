@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,11 +62,12 @@ public class GlobalExceptionHandler {
     /**
      * 权限拒绝异常
      */
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(AccessDeniedException.class)
-    protected R<String> handleAccessDeniedException(final AccessDeniedException ex) {
-        log.error("access denied exception", ex);
-        return R.failure(ex.getCode(), ex.getMessage());
+    @ExceptionHandler(AuthException.class)
+    protected ResponseEntity<R<String>> handleAuthException(final AuthException ex) {
+        log.error("auth exception", ex);
+        return ResponseEntity
+                .status(ex.getCode())
+                .body(R.failure(ex.getCode(), ex.getMessage()));
     }
 
     /**
