@@ -1,4 +1,4 @@
-package com.junmoyu.iam.model;
+package com.junmoyu.iam.model.enums;
 
 /**
  * AuthCacheStatusEnum

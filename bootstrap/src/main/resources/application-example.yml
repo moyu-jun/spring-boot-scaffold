@@ -12,6 +12,8 @@ oss:
 security:
   enabled: true
   exclude-patterns:
+    - /auth/login/**
+    - /auth/refresh
     - /api/auth/login
     - /api/auth/register
     - /api/async-test/**

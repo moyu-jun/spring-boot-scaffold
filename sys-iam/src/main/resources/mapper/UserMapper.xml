@@ -8,14 +8,14 @@
     <result column="username" jdbcType="VARCHAR" property="username" />
     <result column="real_name" jdbcType="VARCHAR" property="realName" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
-    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
     <result column="email" jdbcType="VARCHAR" property="email" />
     <result column="disable" jdbcType="TINYINT" property="disable" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, org_id, username, real_name, avatar, phone, email, disable, create_time, update_time
+    id, org_id, username, real_name, avatar, mobile, email, `disable`, create_time, update_time
   </sql>
 
   <select id="getAllRoleByUserId" resultType="java.lang.String">
@@ -52,5 +52,31 @@
              INNER JOIN sys_user_group ug ON ug.id = ugu.group_id
       WHERE ugu.user_id = #{userId,jdbcType=BIGINT} AND ug.disable = 0
     );
+  </select>
+
+  <select id="selectUserPage" resultType="com.junmoyu.iam.model.response.UserResponse">
+    SELECT u.id, u.org_id AS orgId, o.org_name AS orgName, u.username,
+           u.real_name AS realName, u.avatar, u.mobile, u.email,
+           u.`disable`, u.create_time AS createTime
+    FROM sys_user u
+    LEFT JOIN sys_org o ON u.org_id = o.id
+    <where>
+      <if test="keywords != null and keywords != ''">
+        (u.username LIKE CONCAT('%', #{keywords}, '%')
+        OR u.real_name LIKE CONCAT('%', #{keywords}, '%')
+        OR u.mobile LIKE CONCAT('%', #{keywords}, '%')
+        OR u.email LIKE CONCAT('%', #{keywords}, '%'))
+      </if>
+    </where>
+    ORDER BY u.create_time DESC
+  </select>
+
+  <select id="selectUserDetail" resultType="com.junmoyu.iam.model.response.UserDetailResponse">
+    SELECT u.id, u.org_id AS orgId, o.org_name AS orgName, u.username,
+           u.real_name AS realName, u.avatar, u.mobile, u.email,
+           u.`disable`, u.create_time AS createTime, u.update_time AS updateTime
+    FROM sys_user u
+    LEFT JOIN sys_org o ON u.org_id = o.id
+    WHERE u.id = #{id,jdbcType=BIGINT}
   </select>
 </mapper>
